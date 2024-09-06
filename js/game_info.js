@@ -6,7 +6,25 @@ function updateHand(personalHand,rivalHand,index_mano_personal, index_mano_rival
         hand_personal.style.color= personal_color;
         hand_rival.style.color= rival_color;
     }
-
+    function definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index){
+        if(Math.max(...values_personal_index) == Math.max(...values_rival_index)){
+            if(Math.min(...values_personal_index) != Math.min(...values_rival_index)){
+                if(Math.min(...values_personal_index) > Math.min(...values_rival_index)){
+                    updateColors(hand_personal,hand_rival,"lime","crimson");
+                }
+                else{
+                    updateColors(hand_personal,hand_rival,"crimson","lime");
+                }
+            }
+            
+        }
+        else if(Math.max(...values_personal_index) > Math.max(...values_rival_index)){
+            updateColors(hand_personal,hand_rival,"lime","crimson");
+        }
+        else{
+            updateColors(hand_personal,hand_rival,"crimson","lime");
+        }
+    }
     let hand_personal = document.getElementById("hand-p");
     let hand_rival = document.getElementById("hand-r");
     let allValues = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
@@ -14,35 +32,20 @@ function updateHand(personalHand,rivalHand,index_mano_personal, index_mano_rival
     //Aca obtengo el valor realmente de cada carta, recordemos que tenemos "letras" en el mazo, por eso se complica
     let values_personal_index = [allValues.indexOf(valuesPersonalHand[0]),allValues.indexOf(valuesPersonalHand[1])];
     let values_rival_index = [allValues.indexOf(valuesRivalHand[0]),allValues.indexOf(valuesRivalHand[1])];
-
+    
     if(index_mano_personal == index_mano_rival){
 
         if(MANOS[index_mano_personal] == "carta alta")
         {
             //Se define por carta alta
-            if(Math.max(...values_personal_index) == Math.max(...values_rival_index)){
-                if(Math.min(...values_personal_index) != Math.min(...values_rival_index)){
-                    if(Math.min(...values_personal_index) > Math.min(...values_rival_index)){
-                        updateColors(hand_personal,hand_rival,"lime","crimson");
-                    }
-                    else{
-                        updateColors(hand_personal,hand_rival,"crimson","lime");
-                    }
-                }
-                
-            }
-            else if(Math.max(...values_personal_index) > Math.max(...values_rival_index)){
-                updateColors(hand_personal,hand_rival,"lime","crimson");
-            }
-            else{
-                updateColors(hand_personal,hand_rival,"crimson","lime");
-            }
+            definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
         }
         else{
-            //Estas 4 variavbles son para definir por pareja alta, trios altos, etc.
+            //Estas 4 variables son para definir por pareja alta, trios altos, etc.
             let valuesRepeat_personal = [numbRepeat(personalHand[0].substring(1),valueStreetCards),numbRepeat(personalHand[1].substring(1),valueStreetCards)];
             let valuesRepeat_rival = [numbRepeat(rivalHand[0].substring(1),valueStreetCards),numbRepeat(rivalHand[1].substring(1),valueStreetCards)];
-            
+            let values_repeat_street = valueStreetsRepeat(valueStreetCards);
+
             //Se define por pareja más alta
             if(MANOS[index_mano_personal] == "pareja"){ 
                 if(isMatchingCards(personalHand) && isMatchingCards(rivalHand)){
@@ -54,26 +57,36 @@ function updateHand(personalHand,rivalHand,index_mano_personal, index_mano_rival
                     }
                 }
                 else{
-                    if(isMatchingCards(personalHand)){
-                        if(values_personal_index[0] > values_rival_index[valuesRepeat_rival.indexOf(2)]){
-                            updateColors(hand_personal,hand_rival,"lime","crimson");
+                    if(valuesRepeat_personal.indexOf(2) != -1 || valuesRepeat_rival.indexOf(2) != -1){
+                        if(isMatchingCards(personalHand)){
+                            if(values_personal_index[0] > values_rival_index[valuesRepeat_rival.indexOf(2)]){
+                                updateColors(hand_personal,hand_rival,"lime","crimson");
+                            }
+                            else
+                                updateColors(hand_personal,hand_rival,"crimson","lime");
                         }
-                        else
-                            updateColors(hand_personal,hand_rival,"crimson","lime");
-                    }
-                    else if(isMatchingCards(rivalHand)){
-                        if(values_rival_index[0] > values_personal_index[valuesRepeat_personal.indexOf(2)]){
-                            updateColors(hand_personal,hand_rival,"crimson","lime");
+                        else if(isMatchingCards(rivalHand)){
+                            if(values_rival_index[0] > values_personal_index[valuesRepeat_personal.indexOf(2)]){
+                                updateColors(hand_personal,hand_rival,"crimson","lime");
+                            }
+                            else
+                                updateColors(hand_personal,hand_rival,"lime","crimson");
                         }
-                        else
-                            updateColors(hand_personal,hand_rival,"lime","crimson");
+                        else{
+                            if(values_personal_index[valuesRepeat_personal.indexOf(2)] > values_rival_index[valuesRepeat_rival.indexOf(2)]){
+                                updateColors(hand_personal,hand_rival,"lime","crimson");
+                            }
+                            else if(values_personal_index[valuesRepeat_personal.indexOf(2)] == values_rival_index[valuesRepeat_rival.indexOf(2)]){
+                                //Se define por carta alta
+                                definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
+                            }
+                            else
+                                updateColors(hand_personal,hand_rival,"crimson","lime");
+                        }
                     }
                     else{
-                        if(values_personal_index[valuesRepeat_personal.indexOf(2)] > values_rival_index[valuesRepeat_rival.indexOf(2)]){
-                            updateColors(hand_personal,hand_rival,"lime","crimson");
-                        }
-                        else
-                            updateColors(hand_personal,hand_rival,"crimson","lime");
+                        //Se define por carta alta
+                        definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
                     }
                 }
             }
@@ -140,6 +153,75 @@ function updateHand(personalHand,rivalHand,index_mano_personal, index_mano_rival
                         }
                     }
                 }
+            }
+            else if(MANOS[index_mano_personal] == "trio"){
+                if(isMatchingCards(personalHand) && isMatchingCards(rivalHand)){
+                    if(values_personal_index[0] > values_rival_index[0]){
+                        updateColors(hand_personal,hand_rival,"lime","crimson");
+                    }
+                    else{
+                        updateColors(hand_personal,hand_rival,"crimson","lime");
+                    }
+                }
+                else{
+                    if(valuesRepeat_personal.indexOf(3) != -1 || valuesRepeat_rival.indexOf(3) != -1){
+                        if(isMatchingCards(personalHand)){
+                            if(values_personal_index[0] > values_rival_index[valuesRepeat_rival.indexOf(3)]){
+                                updateColors(hand_personal,hand_rival,"lime","crimson");
+                            }
+                            else
+                                updateColors(hand_personal,hand_rival,"crimson","lime");
+                        }
+                        else if(isMatchingCards(rivalHand)){
+                            if(values_rival_index[0] > values_personal_index[valuesRepeat_personal.indexOf(3)]){
+                                updateColors(hand_personal,hand_rival,"crimson","lime");
+                            }
+                            else
+                                updateColors(hand_personal,hand_rival,"lime","crimson");
+                        }
+                        else{
+                            if(values_personal_index[valuesRepeat_personal.indexOf(3)] > values_rival_index[valuesRepeat_rival.indexOf(3)]){
+                                updateColors(hand_personal,hand_rival,"lime","crimson");
+                            }
+                            else
+                                updateColors(hand_personal,hand_rival,"crimson","lime");
+                        }
+                    }
+                    else{
+                        //Se define por carta alta
+                        definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
+                    }
+                }
+            }
+            else if(MANOS[index_mano_personal] == "escalera"){
+                //Se define por carta alta
+                definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
+            }
+            else if(MANOS[index_mano_personal] == "full house"){
+                //Se define por carta alta
+                definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
+            }
+            else if(MANOS[index_mano_personal] == "color"){
+                definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
+            }
+            else if(MANOS[index_mano_personal] == "poker"){
+
+                if(values_repeat_street.includes(4))
+                    definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
+                else{
+                    let repeat_value_personal = isMatchingCards(hand_personal) ? 3:4;
+                    let repeat_value_rival = isMatchingCards(hand_rival) ? 3:4;
+
+                    if(values_personal_index[valuesRepeat_personal.indexOf(repeat_value_personal)] > values_rival_index[valuesRepeat_rival.indexOf(repeat_value_personal)]){
+                        updateColors(hand_personal,hand_rival,"lime","crimson");
+                    }
+                    else
+                        updateColors(hand_personal,hand_rival,"crimson","lime");
+                }
+            }
+            else if(MANOS[index_mano_personal] == "escalera de color"){
+                //Se define por carta alta
+                definitionByHighCard(hand_personal,hand_rival,values_personal_index,values_rival_index);
             }
         }
     }
@@ -226,11 +308,12 @@ function isEscalera(hand,valueStreetCards){
             index_values_street.push(all_values.indexOf(v));
 
         index_values_street = index_values_street.concat(index_values_hand);
+
         /*Ahora podemos averiguar si se puede colocar mis números dentro de ese arreglo (Los números del arreglo
         deben ser consecutivos)*/
-
         non_repeated_values = diffValues(index_values_street);
         non_repeated_values.sort((a, b) => a - b);
+
         //Aquellos valores que tengan una diferencia mayor a 1 con respecto al resto, se eliminaran
         non_repeated_values = filtrarNumerosConsecutivos(non_repeated_values);
 
@@ -244,7 +327,7 @@ function isEscalera(hand,valueStreetCards){
     if(valueStreetCards.length == 0)
         return false;
     else if(valueStreetCards.length == 3)
-        return forSpecificQuantity(hand,valueStreetCards.slice(0,3));
+        return forSpecificQuantity(hand,valueStreetCards);
     else if(valueStreetCards.length == 4)
         return (forSpecificQuantity(hand,valueStreetCards.slice(0,4)) || forSpecificQuantity(hand,valueStreetCards.slice(0,3))); 
     else
@@ -252,12 +335,18 @@ function isEscalera(hand,valueStreetCards){
 }
 function filtrarNumerosConsecutivos(arr) {
 
-    const nuevoArreglo = [arr[0]];
+    const nuevoArreglo = [];
 
     for (let i = 1; i < arr.length - 1; i++) {
-        if (Math.abs(arr[i] - arr[i + 1]) == 1 && Math.abs(arr[i] - arr[i - 1]) == 1) {
-            nuevoArreglo.push(arr[i]);
+        if(i == 1){
+            if (Math.abs(arr[i] - arr[i - 1]) == 1) {
+                nuevoArreglo.push(arr[i-1]);
+            } 
         }
+
+        if(Math.abs(arr[i] - arr[i - 1]) == 1)
+            nuevoArreglo.push(arr[i]);
+
     }
 
     // Asegurarse de incluir el último número si cumple la condición
@@ -308,8 +397,8 @@ function isEscaleraReal(hand,valueStreetCards,pintasRepeat,pintaStreetCards){
     //Aquellos valores que tengan una diferencia mayor a 1 con respecto al resto, se eliminaran
     index_values_street = filtrarNumerosConsecutivos(index_values_street);
     
-    return isEscaleraColor(hand,valueStreetCards,pintasRepeat,pintaStreetCards) 
-    && (index_values_street.indexOf(12) != -1);
+    return (isEscaleraColor(hand,valueStreetCards,pintasRepeat,pintaStreetCards) 
+    && (index_values_street.indexOf(12) != -1));
 }
 
 function updateStats(personalHand,rivalHand,index_mano_personal,index_mano_rival,deck){
@@ -332,6 +421,6 @@ function updateGameInfo(personalHand,rivalHand,deck,streetMatch){
     let index_mano_rival = indexTypeHand(rivalHand,valueStreetCards,pintaStreetCards);
     console.log(`Mano personal --> ${MANOS[index_mano_personal]}`);
     console.log(`Mano rival --> ${MANOS[index_mano_rival]}`);
-    updateHand(personalHand,rivalHand,index_mano_personal,index_mano_rival,getValuesCard(personalHand),getValuesCard(rivalHand),valueStreetCards,pintaStreetCards);
+    updateHand(personalHand,rivalHand,index_mano_personal,index_mano_rival,getValuesCard(personalHand),getValuesCard(rivalHand),valueStreetCards);
     updateStats(personalHand,rivalHand,index_mano_personal,index_mano_rival,deck);
 }
